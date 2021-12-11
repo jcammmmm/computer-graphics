@@ -1,13 +1,14 @@
 CFLAGS = -std=c++17 -O2
 LDFLAGS = -lglfw -lvulkan -ldl -lpthread
+APPNAME = VulkanTest.app
 
-VulkanTest: main.cpp
-	g++ $(CFLAGS) -o VulkanTest main.cpp $(LDFLAGS)
+VulkanTest.app:
+	g++ $(CFLAGS) -o $(APPNAME) trapp.cpp $(LDFLAGS)
 
 .PHONY: test clean
 
-test: VulkanTest
-	./VulkanTest
+test: VulkanTest.app
+	./$(APPNAME)
 
 clean:
-	rm -f VulkanTest
+	rm -f $(APPNAME)
