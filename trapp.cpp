@@ -11,14 +11,20 @@ const uint32_t HEIGHT = 600;
 class HelloTrinagleApplication {
 public:
     void run() {
+        initWindow();
         initVulkan();
         mainLoop();
         cleanup();
     }
 
 private:
-    void initWindow() {
+    GLFWwindow *window;
 
+    void initWindow() {
+        glfwInit();
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+        window = glfwCreateWindow(WIDTH, HEIGHT, "mycgi", nullptr, nullptr);
     }
     
     void initVulkan() {
@@ -26,11 +32,14 @@ private:
     }
 
     void mainLoop() {
-
+        while (!glfwWindowShouldClose(window)) {
+            glfwPollEvents();
+        }
     }
 
     void cleanup() {
-    
+        glfwDestroyWindow(window);
+        glfwTerminate();
     }
 };
 
