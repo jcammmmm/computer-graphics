@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <cstdlib>
 #include <vector>
+#include <set>
 
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
@@ -31,6 +32,18 @@ private:
     
     void initVulkan() {
         createInstance();
+    }
+
+    void mainLoop() {
+        while (!glfwWindowShouldClose(window)) {
+            glfwPollEvents();
+        }
+    }
+
+    void cleanup() {
+        vkDestroyInstance(instance, nullptr);
+        glfwDestroyWindow(window);
+        glfwTerminate();
     }
 
     void createInstance() {
@@ -60,28 +73,30 @@ private:
         vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
         std::vector<VkExtensionProperties> extensions(extensionCount);
         vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
-
-        std::cout << "extensiones disponibles:\n";
-        for(const auto& extension : extensions) {
-            std::cout << extension.extensionName << '\n';
-        }
-
+        
+        checkExtensionCompatibility(glfwExtensions, glfwExtensionCount, extensions);
 
         if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
             throw std::runtime_error("failed to create Vulkan instance!");
         }
     }
 
-    void mainLoop() {
-        while (!glfwWindowShouldClose(window)) {
-            glfwPollEvents();
+    void checkExtensionCompatibility(const char **requiredByGlfw, const uint32_t &requiredByGlfwCount, const std::vector<VkExtensionProperties> &offeredByVk) {
+        std::set<std::string> extensionsAvailable;
+        std::cout << "extensiones disponibles:\n";
+        for(const auto &extension : offeredByVk) {
+            std::cout << extension.extensionName << '\n';
+            extensionsAvailable.insert(extension.extensionName);
         }
-    }
 
-    void cleanup() {
-        vkDestroyInstance(instance, nullptr);
-        glfwDestroyWindow(window);
-        glfwTerminate();
+        for (int i = 0; i < requiredByGlfwCount; i++) {
+            std::string reqExt(requiredByGlfw[i]);
+            auto it = extensionsAvailable.find(reqExt);
+            if (it == extensionsAvailable.end()) {
+                std::string errMssg = "ERROR: Vulkan no provee la extension '" + reqExt + "' requerida por GLFW.";
+                throw std::runtime_error(errMssg);
+            }
+        }
     }
 };
 
