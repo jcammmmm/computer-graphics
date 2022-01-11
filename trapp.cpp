@@ -47,6 +47,7 @@ private:
     GLFWwindow *window;
     VkInstance instance;
     VkDebugUtilsMessengerEXT debugMessenger;
+    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
     void initWindow() {
         glfwInit();
@@ -58,6 +59,7 @@ private:
     void initVulkan() {
         createInstance();
         setupDebugMessenger();
+        pickPhysicalDevice();
     }
 
     void mainLoop() {
@@ -211,6 +213,28 @@ private:
         auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
         if (func != nullptr)
             func(instance, debugMessenger, pAllocator);
+    }
+
+    void pickPhysicalDevice() {
+        uint32_t deviceCount = 0;
+        vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+        if (deviceCount == 0) 
+            throw std::runtime_error("No hay dispositivos de GPU que soporten Vulkan!");
+        std::vector<VkPhysicalDevice> devices(deviceCount);
+        vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+
+        for (const auto& device : devices) 
+            if (isDeviceSuitable(device)) {
+                physicalDevice = device;
+                break;
+            }
+        
+        if (physicalDevice == VK_NULL_HANDLE)
+            throw std::runtime_error("No fue posible encontrar un GPU para ejecutar!");
+    }
+
+    bool isDeviceSuitable(VkPhysicalDevice device) {
+        return true;
     }
 };
 
