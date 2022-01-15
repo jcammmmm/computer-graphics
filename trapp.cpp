@@ -9,6 +9,10 @@
 #include <cstring>
 #include <optional>
 
+#include <cstdint>
+#include <algorithm>
+
+
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
 
@@ -382,6 +386,12 @@ private:
         return details;
     }
 
+    /**
+     * @brief Choose color depth
+     * 
+     * @param availableFormats 
+     * @return VkSurfaceFormatKHR 
+     */
     VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats) {
         for (const auto &availableFormat : availableFormats)
             if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && 
@@ -390,11 +400,42 @@ private:
         return availableFormats[0];
     }
 
+    /**
+     * @brief Choose the conditions for 'swapping' images to the screen
+     * 
+     * @param availablePresentModes 
+     * @return VkPresentModeKHR 
+     */
     VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes) {
         for (const auto &availablePresentMode : availablePresentModes) 
             if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
                 return availablePresentMode;
         return VK_PRESENT_MODE_FIFO_KHR;
+    }
+    
+    /**G
+     * @brief Choose resolution of images in swap chain
+     * 
+     * @param capabilities 
+     * @return VkExtent2D 
+     */
+    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities) {
+        if (capabilities.currentExtent.width != UINT32_MAX) {
+            return capabilities.currentExtent;
+        } else {
+            int width, height;
+            glfwGetFramebufferSize(window, &width, &height);
+
+            VkExtent2D actualExtent = {
+                static_cast<uint32_t>(width),
+                static_cast<uint32_t>(height)
+            };
+
+            actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
+            actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
+
+            return actualExtent;
+        }
     }
 };
 
