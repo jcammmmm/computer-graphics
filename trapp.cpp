@@ -103,6 +103,8 @@ private:
     VkExtent2D swapchainExtent;
     // image views
     std::vector<VkImageView> swapchainImageViews;
+    // pipeline layout
+    VkPipelineLayout pipelineLayout;
 
     void initWindow() {
         glfwInit();
@@ -129,6 +131,7 @@ private:
     }
 
     void cleanup() {
+        vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
         for (auto imageView : swapchainImageViews)
             vkDestroyImageView(device, imageView, nullptr);
         vkDestroySwapchainKHR(device, swapchain, nullptr);
@@ -660,6 +663,17 @@ private:
         dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
         dynamicState.dynamicStateCount = 2;
         dynamicState.pDynamicStates = dynamicStates;
+
+        VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+        pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+        pipelineLayoutInfo.setLayoutCount = 0;
+        pipelineLayoutInfo.pSetLayouts = nullptr;
+        pipelineLayoutInfo.pushConstantRangeCount = 0;
+        pipelineLayoutInfo.pPushConstantRanges = nullptr;
+
+        if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+            throw std::runtime_error("Error: no fue posible crear o configurar el pipeline!");
+        }
     }
 
     VkShaderModule createShaderModule(const std::vector<char>& code) {
